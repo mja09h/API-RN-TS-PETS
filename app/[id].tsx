@@ -1,13 +1,22 @@
 import { useLocalSearchParams } from "expo-router";
-import React from "react";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { pets } from "../data/pets";
+import { Pet, pets } from "../data/pets";
+import { getPet } from "../api/pets";
 
 export default function PetDetails() {
   const { id } = useLocalSearchParams();
+  const [pet, setPet] = useState<Pet | null>(null);
 
-  const pet = pets.find((p) => p.id === Number(id));
+  const getPetData = async () => {
+    const foundPet = await getPet(Number(id));
+    setPet(foundPet);
+  };
+
+  useEffect(() => {
+    getPetData();
+  }, []);
 
   if (!pet) {
     return (
@@ -15,6 +24,9 @@ export default function PetDetails() {
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Pet not found!</Text>
         </View>
+        <TouchableOpacity onPress={() => getPetData()} style={styles.button}>
+          <Text style={styles.buttonText}>Get Pet</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -146,5 +158,17 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: "#666",
+  },
+  button: {
+    padding: 10,
+    backgroundColor: "#6200EE",
+    borderRadius: 5,
+    margin: 10,
+    
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

@@ -11,11 +11,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AddPetModal } from "../components/AddPetModal";
 import { PetCard } from "../components/PetCard";
 import { pets as initialPets, Pet } from "../data/pets";
+import { getAllPets } from "../api/pets";
 
 export default function Index() {
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>(initialPets);
   const [modalVisible, setModalVisible] = useState(false);
+  
 
   const handlePetPress = (id: number) => {
     router.push(`/${id}`);
@@ -32,6 +34,15 @@ export default function Index() {
         style={styles.headerButton}
       >
         <Text style={styles.headerButtonText}>Add Pet</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={async () => {
+          setPets(await getAllPets());
+        }}
+        style={styles.headerButton}
+      >
+        <Text style={styles.headerButtonText}>Show Pets</Text>
       </TouchableOpacity>
 
       <SafeAreaView style={styles.container} edges={["bottom"]}>
