@@ -1,13 +1,15 @@
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { deletePet } from "../api/pets";
 import { Pet } from "../data/pets";
 
 interface PetCardProps {
   pet: Pet;
   onPress: () => void;
+  onDelete?: () => void;
 }
 
-export const PetCard: React.FC<PetCardProps> = ({ pet, onPress }) => {
+export const PetCard: React.FC<PetCardProps> = ({ pet, onPress, onDelete }) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image source={{ uri: pet.image }} style={styles.image} />
@@ -23,6 +25,20 @@ export const PetCard: React.FC<PetCardProps> = ({ pet, onPress }) => {
             </View>
           )}
         </View>
+        <View style={styles.deleteButtonContainer}>
+          <TouchableOpacity
+            onPress={async () => {
+              await deletePet(pet.id);
+              if (onDelete) {
+                onDelete();
+              }
+            }}
+            style={styles.deleteButton}
+          >
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+
         <Text style={styles.type}>{pet.type}</Text>
       </View>
     </TouchableOpacity>
@@ -96,5 +112,24 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  deleteButton: {
+    backgroundColor: "#FF0000",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  deleteButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginRight: 0,
   },
 });

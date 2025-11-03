@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { Pet } from "../data/pets";
+import { addPet } from "../api/pets";
 
 interface AddPetModalProps {
   visible: boolean;
@@ -26,24 +27,31 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
   const [type, setType] = useState("");
   const [adopted, setAdopted] = useState("");
   const [image, setImage] = useState("");
+  
 
-  const handleAdd = () => {
+ 
+  const handleAdd = async () => {
     if (name.trim() && type.trim()) {
+      try {
       const maxId = Date.now(); // Generate unique ID using rtimestamp
-      onAdd({
-        id: maxId,
-        name: name.trim(),
-        type: type.trim(),
-        adopted: adopted.trim() || "No",
-        image: image.trim() || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&h=400&fit=crop",
-      });
+      const newPet = await addPet(
+        name.trim(),
+        image.trim() || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&h=400&fit=crop",
+        type.trim(),
+        adopted.trim().toLowerCase() === "yes" ? true : false
+      )
+      onAdd(newPet);
+
       // Reset form
       setName("");
       setType("");
       setAdopted("");
       setImage("");
       onClose();
-    }
+
+    } catch (error) {
+      console.error("Error adding pet:", error);
+    }}
   };
 
   const handleCancel = () => {

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -8,16 +8,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getAllPets } from "../api/pets";
 import { AddPetModal } from "../components/AddPetModal";
 import { PetCard } from "../components/PetCard";
 import { pets as initialPets, Pet } from "../data/pets";
-import { getAllPets } from "../api/pets";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Index() {
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>(initialPets);
   const [modalVisible, setModalVisible] = useState(false);
-  
 
   const handlePetPress = (id: number) => {
     router.push(`/${id}`);
@@ -26,6 +26,24 @@ export default function Index() {
   const handleAddPet = (newPet: Pet) => {
     setPets([newPet, ...pets]);
   };
+
+  const handleDeletePet = async () => {
+    const allPets = await getAllPets();
+    setPets(allPets);
+  };
+
+  // useEffect(() => {
+  //   const fetchPets = async () => {
+  //     const allPets = await getAllPets();
+  //     setPets(allPets);
+  //   };
+  //   fetchPets();
+  //   }, []);
+
+  const { data } = useQuery({
+    queryKey: ["allPets"],
+    queryFn: getAllPets,
+  })
 
   return (
     <>
@@ -36,28 +54,29 @@ export default function Index() {
         <Text style={styles.headerButtonText}>Add Pet</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={async () => {
           setPets(await getAllPets());
         }}
         style={styles.headerButton}
       >
         <Text style={styles.headerButtonText}>Show Pets</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {pets.length === 0 ? (
+          {data?.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No pets yet!</Text>
               <Text style={styles.emptySubtext}>Start by adding a new pet</Text>
             </View>
           ) : (
-            pets.map((pet) => (
+            data?.map((pet: Pet) => (
               <PetCard
                 key={pet.id}
                 pet={pet}
                 onPress={() => handlePetPress(pet.id)}
+                onDelete={handleDeletePet}
               />
             ))
           )}

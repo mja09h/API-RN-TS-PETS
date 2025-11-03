@@ -1,24 +1,33 @@
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Pet, pets } from "../data/pets";
-import { getPet } from "../api/pets";
+import { getPet, addPet } from "../api/pets";
+import { useQuery } from "@tanstack/react-query";
 
 export default function PetDetails() {
   const { id } = useLocalSearchParams();
   const [pet, setPet] = useState<Pet | null>(null);
 
   const getPetData = async () => {
-    const foundPet = await getPet(Number(id));
+     const foundPet = await getPet(Number(id));
     setPet(foundPet);
   };
+  
+  const { data, isLoading } = useQuery({
+    queryKey: ["pet", id],
+    queryFn: () => getPet(Number(id)),
+  });
 
-  useEffect(() => {
-    getPetData();
-  }, []);
+  // useEffect(() => {
+  //   getPetData();
+  // }, []);
 
-  if (!pet) {
+  if (!data) {
+    if (isLoading) {
+      return <ActivityIndicator size="large" color="#6200EE" />;
+    }
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.errorContainer}>
@@ -34,20 +43,20 @@ export default function PetDetails() {
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Image source={{ uri: pet.image }} style={styles.petImage} />
+        <Image source={{ uri: data.image }} style={styles.petImage} />
 
         <View style={styles.header}>
-          <Text style={styles.name}>{pet.name}</Text>
+          <Text style={styles.name}>{data.name}</Text>
           <View
             style={[
               styles.statusBadge,
-              pet.adopted === "Yes"
+              data.adopted === "Yes"
                 ? styles.adoptedBadge
                 : styles.availableBadge,
             ]}
           >
             <Text style={styles.statusText}>
-              {pet.adopted === "Yes" ? "✓ Adopted" : "Available"}
+              {data.adopted === "Yes" ? "✓ Adopted" : "Available"}
             </Text>
           </View>
         </View>
@@ -56,16 +65,16 @@ export default function PetDetails() {
           <Text style={styles.sectionTitle}>Details</Text>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>ID:</Text>
-            <Text style={styles.detailValue}>#{pet.id}</Text>
+            <Text style={styles.detailValue}>#{data.id}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Type:</Text>
-            <Text style={styles.detailValue}>{pet.type}</Text>
+            <Text style={styles.detailValue}>{data.type}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Status:</Text>
             <Text style={styles.detailValue}>
-              {pet.adopted === "Yes" ? "Adopted" : "Available for adoption"}
+              {data.adopted === "Yes" ? "Adopted" : "Available for adoption"}
             </Text>
           </View>
         </View>
