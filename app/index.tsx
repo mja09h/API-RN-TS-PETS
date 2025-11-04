@@ -1,6 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,7 +14,6 @@ import { getAllPets } from "../api/pets";
 import { AddPetModal } from "../components/AddPetModal";
 import { PetCard } from "../components/PetCard";
 import { pets as initialPets, Pet } from "../data/pets";
-import { useQuery } from "@tanstack/react-query";
 
 export default function Index() {
   const router = useRouter();
@@ -27,16 +28,18 @@ export default function Index() {
     setPets([newPet, ...pets]);
   };
 
-  const handleDeletePet = async () => {
-    const allPets = await getAllPets();
-    setPets(allPets);
-  };
-
-
-  const { data } = useQuery({
+  const { data, isPending, refetch } = useQuery({
     queryKey: ["allPets"],
     queryFn: getAllPets,
-  })
+  });
+
+  if (isPending) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6200EE" />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -69,7 +72,6 @@ export default function Index() {
                 key={pet.id}
                 pet={pet}
                 onPress={() => handlePetPress(pet.id)}
-                onDelete={handleDeletePet}
               />
             ))
           )}
@@ -78,6 +80,7 @@ export default function Index() {
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           onAdd={handleAddPet}
+          refetch={refetch}
         />
       </SafeAreaView>
     </>
@@ -122,5 +125,12 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     marginTop: -2,
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
   },
 });

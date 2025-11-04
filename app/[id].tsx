@@ -1,25 +1,51 @@
-import { useLocalSearchParams } from "expo-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { deletePet, getPet } from "../api/pets";
 import { Pet } from "../data/pets";
-import { getPet } from "../api/pets";
-import { useQuery } from "@tanstack/react-query";
 
 export default function PetDetails() {
   const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [pet, setPet] = useState<Pet | null>(null);
 
   const getPetData = async () => {
-     const foundPet = await getPet(Number(id));
+    const foundPet = await getPet(Number(id));
     setPet(foundPet);
   };
-  
+
   const { data, isLoading } = useQuery({
     queryKey: ["pet", id],
     queryFn: () => getPet(Number(id)),
   });
 
+  const { mutate: deletePetMutation } = useMutation({
+    mutationKey: ["deletePet"],
+    mutationFn: (petId: number) => deletePet(petId),
+    onSuccess: () => { 
+      queryClient.invalidateQueries({ queryKey: ["pet", id] });
+      queryClient.invalidateQueries({ queryKey: ["allPets"] });
+      
+      router.back();
+    },
+  });
+
+  const handleDelete = () => {
+    if (data) {
+      deletePetMutation(data.id);
+    }
+  };
 
   if (!data) {
     if (isLoading) {
@@ -74,6 +100,12 @@ export default function PetDetails() {
               {data.adopted === "Yes" ? "Adopted" : "Available for adoption"}
             </Text>
           </View>
+        </View>
+
+        <View style={styles.deleteButtonContainer}>
+          <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -170,9 +202,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#6200EE",
     borderRadius: 5,
     margin: 10,
-    
   },
   buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  deleteButtonContainer: {
+    marginHorizontal: 20,
+    marginTop: 10,
+  },
+  deleteButton: {
+    padding: 10,
+    backgroundColor: "#FF0000",
+    borderRadius: 5,
+    margin: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",

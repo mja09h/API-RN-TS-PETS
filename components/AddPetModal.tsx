@@ -11,36 +11,56 @@ import {
 } from "react-native";
 import { Pet } from "../data/pets";
 import { addPet } from "../api/pets";
+import { useMutation } from "@tanstack/react-query";
 
 interface AddPetModalProps {
   visible: boolean;
   onClose: () => void;
   onAdd: (pet: Pet) => void;
+  refetch: () => void;
 }
 
 export const AddPetModal: React.FC<AddPetModalProps> = ({
   visible,
   onClose,
   onAdd,
+  refetch,
 }) => {
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [adopted, setAdopted] = useState("");
   const [image, setImage] = useState("");
   
-
+  const {mutate} = useMutation({
+    mutationKey: ["addPet"],
+    mutationFn: (pet: Pet) => addPet(pet.name, pet.image, pet.type, pet.adopted === "No"),
+    onSuccess: () => {
+      refetch();
+    },
+  });
  
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (name.trim() && type.trim()) {
       try {
       const maxId = Date.now(); // Generate unique ID using rtimestamp
-      const newPet = await addPet(
-        name.trim(),
-        image.trim() || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&h=400&fit=crop",
-        type.trim(),
-        adopted.trim().toLowerCase() === "yes" ? true : false
-      )
+      const newPet = {
+        id: maxId,
+        name: name.trim(),
+        image: image.trim() || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&h=400&fit=crop",
+        type: type.trim(),
+        adopted: adopted.trim().toLowerCase() === "yes" ? "Yes" : "No",
+      }
+      mutate({id: maxId, name, image, type, adopted});
+
       onAdd(newPet);
+
+      // const newPet = await addPet(
+      //   name.trim(),
+      //   image.trim() || "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=400&h=400&fit=crop",
+      //   type.trim(),
+      //   adopted.trim().toLowerCase() === "yes" ? true : false
+      // )
+      // onAdd(newPet);
 
       // Reset form
       setName("");
