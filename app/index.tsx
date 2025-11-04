@@ -32,13 +32,6 @@ export default function Index() {
     setPets(allPets);
   };
 
-  // useEffect(() => {
-  //   const fetchPets = async () => {
-  //     const allPets = await getAllPets();
-  //     setPets(allPets);
-  //   };
-  //   fetchPets();
-  //   }, []);
 
   const { data } = useQuery({
     queryKey: ["allPets"],

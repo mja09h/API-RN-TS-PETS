@@ -1,9 +1,9 @@
 import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Pet, pets } from "../data/pets";
-import { getPet, addPet } from "../api/pets";
+import { Pet } from "../data/pets";
+import { getPet } from "../api/pets";
 import { useQuery } from "@tanstack/react-query";
 
 export default function PetDetails() {
@@ -20,9 +20,6 @@ export default function PetDetails() {
     queryFn: () => getPet(Number(id)),
   });
 
-  // useEffect(() => {
-  //   getPetData();
-  // }, []);
 
   if (!data) {
     if (isLoading) {
